@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Write-Ups Collection · Chicken0248 (Clone)</title>
+  <meta name="description" content="CTF challenges & cybersecurity lab solutions — documented, reproducible, verifiable on source">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📡</text></svg>">
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --surface: #111820;
+      --surface2: #161e28;
+      --border: #1e2a38;
+      --border2: #243041;
+      --text: #e6edf5;
+      --muted: #8b9bb0;
+      --dim: #5c6b7e;
+      --accent: #3dd6c6;
+      --accent2: #5b8def;
+      --green: #3ecf8e;
+      --yellow: #e8b84a;
+      --red: #e85a6b;
+      --purple: #a78bfa;
+      --cyan: #22d3ee;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.5 "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* Top bar */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 24px;
+      border-bottom: 1px solid var(--border);
+      background: #0a0e13;
+      font-size: 12px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .badge {
+      padding: 3px 9px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: .03em;
+      border: 1px solid;
+    }
+    .badge.tlp { background: #0e3a4a; color: var(--cyan); border-color: #1a5a6e; }
+    .badge.ops { background: #0e3a2a; color: var(--green); border-color: #1a5a3e; }
+    .topbar a.nav {
+      color: var(--muted);
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-size: 11px;
+    }
+    .topbar a.nav:hover { color: var(--text); border-color: var(--accent); text-decoration: none; }
+    .topbar-right { color: var(--dim); font-size: 11px; }
+
+    .page { max-width: 1100px; margin: 0 auto; padding: 24px 20px 60px; }
+
+    /* Breadcrumb / meta */
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      font-size: 12px;
+      color: var(--dim);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .meta-row .path span { color: var(--muted); }
+    .meta-row .path strong { color: var(--accent); }
+
+    /* Hero card */
+    .hero {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px 24px;
+      margin-bottom: 20px;
+    }
+    .hero-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .hero-icon {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, #1a3a4a, #0e2a3a);
+      border: 1px solid #2a5a6a;
+      border-radius: 10px;
+      display: grid; place-items: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .hero h1 {
+      font-size: 1.55rem;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      margin-bottom: 4px;
+    }
+    .hero p { color: var(--muted); font-size: 13px; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .stat {
+      background: var(--surface2);
+      padding: 14px 16px;
+    }
+    .stat-label {
+      font-size: 10px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .stat-label .dot-sm {
+      width: 6px; height: 6px; border-radius: 50%;
+    }
+    .stat-value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -.02em;
+    }
+    .stat-value span { font-size: 12px; font-weight: 500; color: var(--muted); margin-left: 4px; }
+
+    /* Search + filters */
+    .controls {
+      margin: 22px 0 16px;
+    }
+    .search-wrap {
+      position: relative;
+      margin-bottom: 14px;
+    }
+    .search-wrap input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 11px 14px 11px 38px;
+      color: var(--text);
+      font: inherit;
+      outline: none;
+    }
+    .search-wrap input:focus { border-color: var(--accent); }
+    .search-wrap input::placeholder { color: var(--dim); }
+    .search-wrap .icon {
+      position: absolute;
+      left: 12px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--dim);
+      font-size: 14px;
+    }
+
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .filter-label {
+      font-size: 10px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--dim);
+      min-width: 70px;
+    }
+    .chip {
+      padding: 5px 11px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      cursor: pointer;
+      transition: .12s;
+    }
+    .chip:hover { border-color: var(--accent); color: var(--text); }
+    .chip.active {
+      background: #0e3a3a;
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .chip .count {
+      opacity: .7;
+      font-weight: 500;
+      margin-left: 4px;
+      font-size: 11px;
+    }
+
+    /* Platform section */
+    .platform {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    .platform-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      cursor: pointer;
+      border-bottom: 1px solid transparent;
+      user-select: none;
+    }
+    .platform.open .platform-header { border-bottom-color: var(--border); }
+    .platform-header:hover { background: var(--surface2); }
+    .platform-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .platform-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: #0e2a3a;
+      border: 1px solid #1a4a5a;
+      display: grid; place-items: center;
+      font-size: 14px;
+    }
+    .platform-title { font-weight: 700; font-size: 15px; }
+    .platform-sub { font-size: 11px; color: var(--dim); margin-top: 1px; }
+    .platform-badge {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 5px;
+      background: #0e2a3a;
+      color: var(--accent);
+      border: 1px solid #1a4a5a;
+      font-weight: 600;
+    }
+    .platform-body { display: none; padding: 8px 12px 14px; }
+    .platform.open .platform-body { display: block; }
+
+    /* Write-up card */
+    .wu {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 8px;
+      transition: border-color .12s;
+    }
+    .wu:hover { border-color: #2a4a5a; }
+    .wu-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+    .wu-id {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--dim);
+      background: #0a121a;
+      padding: 2px 7px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+    .wu-plat {
+      font-size: 10px;
+      letter-spacing: .04em;
+      color: var(--dim);
+      text-transform: uppercase;
+    }
+    .wu-diff {
+      margin-left: auto;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .wu-diff.easy { background: #0e2a1e; color: var(--green); border: 1px solid #1a4a2e; }
+    .wu-diff.medium { background: #2a2210; color: var(--yellow); border: 1px solid #4a3a1a; }
+    .wu-diff.hard { background: #2a1218; color: var(--red); border: 1px solid #4a1a28; }
+    .wu-diff.veryeasy { background: #0e2a2a; color: var(--cyan); border: 1px solid #1a4a4a; }
+    .wu h3 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .wu-cat {
+      font-size: 10px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 6px;
+    }
+    .wu-desc {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      line-height: 1.45;
+    }
+    .tags { display: flex; flex-wrap: wrap; gap: 5px; }
+    .tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: #0a121a;
+      border: 1px solid var(--border);
+      color: var(--dim);
+    }
+
+    .empty {
+      text-align: center;
+      padding: 40px;
+      color: var(--dim);
+      display: none;
+    }
+    .empty.show { display: block; }
+
+    footer {
+      text-align: center;
+      padding: 24px;
+      color: var(--dim);
+      font-size: 12px;
+      border-top: 1px solid var(--border);
+      margin-top: 20px;
+    }
+    footer span { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="dot"></span>
+      <span style="color:var(--muted);font-weight:600">UPLINK</span>
+      <span style="color:var(--dim)">SOC /</span>
+      <strong style="color:var(--text)">WRITE-UPS</strong>
+      <span class="badge tlp">TLP:CLEAR</span>
+      <span class="badge ops">OPERATIONAL</span>
+      <a class="nav" href="https://chickenloner.github.io" target="_blank" rel="noopener">PORTFOLIO ↗</a>
+      <a class="nav" href="https://github.com/ChickenLoner/Write_It_UP" target="_blank" rel="noopener">GITHUB ↗</a>
+    </div>
+    <div class="topbar-right">LAST.SYNC · 2026-10-07</div>
+  </div>
+
+  <div class="page">
+    <div class="meta-row">
+      <div class="path">
+        <span>portfolio</span> / <strong>write_ups</strong>
+        &nbsp;&nbsp; indexed <strong style="color:var(--text)">361</strong>
+        &nbsp;&nbsp; platforms <strong style="color:var(--text)">8</strong>
+      </div>
+      <div>last_sync <strong style="color:var(--text)">2026-10-07</strong></div>
+    </div>
+
+    <div class="hero">
+      <div class="hero-top">
+        <div class="hero-icon">◈</div>
+        <div>
+          <h1>Write-Ups Collection</h1>
+          <p>CTF challenges & cybersecurity lab solutions — documented, reproducible, verifiable on source</p>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-label"><span class="dot-sm" style="background:var(--accent)"></span> Total write-ups</div>
+          <div class="stat-value">361 <span>entries</span></div>
+        </div>
+        <div class="stat">
+          <div class="stat-label"><span class="dot-sm" style="background:var(--accent2)"></span> CyberDefenders</div>
+          <div class="stat-value">81</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label"><span class="dot-sm" style="background:var(--green)"></span> LetsDefend</div>
+          <div class="stat-value">75</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label"><span class="dot-sm" style="background:var(--red)"></span> Centri · BTLO</div>
+          <div class="stat-value">72</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label"><span class="dot-sm" style="background:var(--purple)"></span> Platforms</div>
+          <div class="stat-value">8</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="search-wrap">
+        <span class="icon">⌕</span>
+        <input type="search" id="search" placeholder="grep write-ups..." autocomplete="off">
+      </div>
+
+      <div class="filter-row" id="plat-filters">
+        <span class="filter-label">Platform</span>
+        <button class="chip active" data-plat="">ALL <span class="count">361</span></button>
+        <button class="chip" data-plat="CyberDefenders">CYBERDEFENDERS <span class="count">81</span></button>
+        <button class="chip" data-plat="LetsDefend">LETSDEFEND <span class="count">75</span></button>
+        <button class="chip" data-plat="Centri">CENTRI · BTLO <span class="count">72</span></button>
+        <button class="chip" data-plat="HTB Sherlocks">HTB SHERLOCKS <span class="count">52</span></button>
+        <button class="chip" data-plat="TryHackMe">TRYHACKME <span class="count">33</span></button>
+        <button class="chip" data-plat="Unlisted">UNLISTED LABS <span class="count">20</span></button>
+        <button class="chip" data-plat="HTB Machines">HTB MACHINES <span class="count">16</span></button>
+        <button class="chip" data-plat="HackSmarter">HACKSMARTER.ORG <span class="count">12</span></button>
+      </div>
+
+      <div class="filter-row" id="diff-filters">
+        <span class="filter-label">Difficulty</span>
+        <button class="chip active" data-diff="">ALL <span class="count">360</span></button>
+        <button class="chip" data-diff="Very Easy">VERY EASY <span class="count">3</span></button>
+        <button class="chip" data-diff="Easy">EASY <span class="count">80</span></button>
+        <button class="chip" data-diff="Medium">MEDIUM <span class="count">201</span></button>
+        <button class="chip" data-diff="Hard">HARD <span class="count">76</span></button>
+      </div>
+    </div>
+
+    <div id="list"></div>
+    <p class="empty" id="empty">no write-ups matched your query ·</p>
+  </div>
+
+  <footer>
+    Clone of <span>writeups.chicken0248.fyi</span> · Source of truth: <a href="https://github.com/ChickenLoner/Write_It_UP" target="_blank">GitHub Write_It_UP</a>
+  </footer>
+
+  <script>
+    // Sample data (representative subset matching original structure)
+    const writeups = [
+      // CyberDefenders
+      { id: "001", platform: "CyberDefenders", title: "3CX Supply Chain", cat: "Threat Intel", diff: "Hard", desc: "Trace the 3CX supply chain compromise using VirusTotal to identify malicious DLLs, evasion TTPs, malware family, and the responsible APT group", tags: ["virustotal","apt","supply-chain","malware","t1574"] },
+      { id: "002", platform: "CyberDefenders", title: "APT35", cat: "Mobile Forensics", diff: "Medium", desc: "Examine an Android image to confirm APT35 spyware disguised as a VPN, recovering its C2 domain, SMS-stealing functions, and permissions", tags: ["jadx","apk","sqlite","spyware","c2"] },
+      { id: "003", platform: "CyberDefenders", title: "Acoustic", cat: "Network Forensics", diff: "Medium", desc: "Analyze a VoIP honeypot pcap and log to uncover SIP scanning tools, dialed numbers, credentials, and RTP codec details", tags: ["wireshark","sip","rtp","voip","sipvicious"] },
+      { id: "004", platform: "CyberDefenders", title: "AfricanFalls", cat: "Windows DFIR", diff: "Medium", desc: "Examine a suspect's Windows disk image to recover browser searches, FTP servers, deleted files, Tor usage, and cracked login passwords", tags: ["autopsy","ftk-imager","mimikatz","shellbags","rifiuti2"] },
+      { id: "005", platform: "CyberDefenders", title: "AndroidBreach", cat: "Mobile Forensics", diff: "Medium", desc: "Analyze an Android dump to trace a malicious APK download, decompile it, and recover exfiltration channels, encryption keys, and leaked credentials", tags: ["aleapp","jadx","apk","cyberchef","sqlite"] },
+      { id: "006", platform: "CyberDefenders", title: "Andromeda Bot", cat: "Memory Forensics", diff: "Medium", desc: "Investigate a memory image to trace USB-borne Andromeda bot propagation, dropped payloads, C2 infrastructure, and the reactivating APT group", tags: ["memprocfs","volatility","usbstor","virustotal","evtxcmd"] },
+      { id: "007", platform: "CyberDefenders", title: "BankingTroubles", cat: "Memory Forensics", diff: "Hard", desc: "Analyze a memory image of a banking-malware infection to trace a malicious PDF exploit, embedded JavaScript, shellcode, and C2 connections", tags: ["volatility","pdf-tools","shellcode","malfind","t1203"] },
+      { id: "008", platform: "CyberDefenders", title: "BlackEnergy", cat: "Memory Forensics", diff: "Medium", desc: "Analyze a memory dump infected with BlackEnergy v2 to identify the suspicious process, code injection, and the injected DLL's base address", tags: ["volatility","malfind","dll-injection","t1055.001","virustotal"] },
+      { id: "009", platform: "CyberDefenders", title: "BlueSky Ransomware", cat: "Network Forensics", diff: "Hard", desc: "Correlate pcap and event logs to reconstruct a BlueSky ransomware attack from SQL brute force through privilege escalation, persistence, and credential dumping", tags: ["wireshark","networkminer","ransomware","pcap","event-logs"] },
+      { id: "010", platform: "CyberDefenders", title: "Brave", cat: "Memory Forensics", diff: "Medium", desc: "Analyze a Windows memory image to enumerate browser processes, network connections, executable hashes, and PowerShell parent activity", tags: ["volatility","netscan","hxd","certutil","t1071.001"] },
+      { id: "011", platform: "CyberDefenders", title: "BumbleSting", cat: "Threat Hunting", diff: "Hard", desc: "Hunt across SIEM logs to trace a phishing-driven intrusion through execution, defense evasion, lateral movement, credential dumping, and persistence", tags: ["splunk","elk","siem","process-injection","kerberos"] },
+      { id: "012", platform: "CyberDefenders", title: "CorporateSecrets", cat: "Windows DFIR", diff: "Easy", desc: "Examine a Windows disk image to recover system build, users, file metadata, recycle bin contents, and installed browsers", tags: ["ftk-imager","registry-explorer","regripper","hindsight","sqlite"] },
+      { id: "013", platform: "CyberDefenders", title: "DeepDive", cat: "Memory Forensics", diff: "Hard", desc: "Analyze a memory image to uncover a hidden unlinked process, its injected PEs, pool tags, and full path using Volatility and volshell", tags: ["volatility","psxview","process-injection","volshell","t1055"] },
+      { id: "014", platform: "CyberDefenders", title: "DumpMe", cat: "Memory Forensics", diff: "Medium", desc: "Analyze a memory dump of a Meterpreter infection to extract the infected PID, attacker IP, VBS script, hashes, and VAD protections", tags: ["volatility","meterpreter","netscan","hashdump","vad"] },
+      { id: "015", platform: "CyberDefenders", title: "Eli", cat: "Endpoint Forensics", diff: "Medium", desc: "Analyze Chromebook and Google Takeout artifacts to reconstruct downloads, browser activity, and user location history", tags: ["chromebook","google-takeout","sqlite","cyberchef","cleapp"] },
+      { id: "016", platform: "CyberDefenders", title: "Emprisa Maldoc", cat: "Malware Analysis", diff: "Medium", desc: "Dissect a malicious RTF exploiting CVE-2017-11882 to extract its obfuscated shellcode, payload URL, and download-and-execute functions", tags: ["rtfdump","scdbg","shellcode","cve-2017-11882","t1140"] },
+      { id: "017", platform: "CyberDefenders", title: "EscapeRoom", cat: "Network Forensics", diff: "Medium", desc: "Trace an SSH brute-force intrusion through PCAP and Linux logs to recover credentials and reconstruct malware installation and persistence", tags: ["pcap","wireshark","ssh","bruteforce","linux"] },
+      { id: "018", platform: "CyberDefenders", title: "FakeGPT", cat: "Malware Analysis", diff: "Medium", desc: "Reverse a malicious fake ChatGPT browser extension to expose its keylogging, cookie theft, encryption, and C2 exfiltration behavior", tags: ["browser-ext","javascript","base64","c2","keylogger"] },
+      { id: "019", platform: "CyberDefenders", title: "Fog Ransomware", cat: "Windows DFIR", diff: "Hard", desc: "Investigate a Fog Ransomware infection from a phishing RAR through PowerShell execution, BYOVD privilege escalation, persistence, and encryption impact", tags: ["ransomware","kape","powershell","evtx","eztools"] },
+      { id: "020", platform: "CyberDefenders", title: "GetPDF", cat: "Malware Analysis", diff: "Medium", desc: "Dissect a malicious PDF captured in PCAP to extract obfuscated JS object streams, shellcode, and CVE exploits that drop executables", tags: ["pdf","javascript","shellcode","scdbg","wireshark"] },
+      { id: "021", platform: "CyberDefenders", title: "GhostDetect", cat: "Malware Analysis", diff: "Hard", desc: "Analyze a malicious LNK dropper that launches mshta-driven HTA/JS payloads, decrypt its stages, and attribute the campaign to an APT group", tags: ["lnk","mshta","hta","procmon","cyberchef"] },
+      { id: "022", platform: "CyberDefenders", title: "GoldenSpray", cat: "Threat Hunting", diff: "Hard", desc: "Hunt a password-spray-to-domain-compromise attack in Splunk, tracing RDP lateral movement, credential dumping, and Kerberos ticket abuse", tags: ["splunk","sysmon","kerberos","lateral-movement","password-spray"] },
+      { id: "023", platform: "CyberDefenders", title: "GrabThePhisher", cat: "Threat Intel", diff: "Easy", desc: "Analyze a MetaMask phishing kit to recover stolen seed phrases and pivot through its Telegram bot to unmask the phishing actor", tags: ["phishing","osint","php","telegram","metamask"] },
+      { id: "024", platform: "CyberDefenders", title: "Hacked", cat: "Linux DFIR", diff: "Medium", desc: "Examine a compromised Linux web server disk image to determine SSH brute-force access, crack credentials, and identify attacker-created accounts", tags: ["disk-forensic","ftk-imager","auth.log","johntheripper","ssh"] },
+      { id: "025", platform: "CyberDefenders", title: "Hammered", cat: "Log Analysis", diff: "Medium", desc: "Correlate honeypot auth, kernel, and Apache logs to profile SSH brute-force attackers, firewall changes, and dropped scanning tools", tags: ["auth.log","apache2","honeypot","ssh","grep"] },
+      { id: "026", platform: "CyberDefenders", title: "HawkEye", cat: "Network Forensics", diff: "Easy", desc: "Profile capture endpoints, DNS queries, and hosts in a PCAP to trace malware delivered via a malicious invoice email and its exfiltration", tags: ["pcap","wireshark","networkminer","dns","geoip"] },
+      { id: "027", platform: "CyberDefenders", title: "HireMe", cat: "Windows DFIR", diff: "Medium", desc: "Analyze a Windows disk image via registry hives and browser artifacts to answer OS, user, and case-related questions about the suspect", tags: ["disk-forensic","registry","ftk-imager","autopsy","eztools"] },
+      { id: "028", platform: "CyberDefenders", title: "HoneyBOT", cat: "Network Forensics", diff: "Medium", desc: "Analyze honeypot PCAP traffic to identify an SMB buffer-overflow exploit, decode its shellcode, and track downloaded malware", tags: ["pcap","wireshark","smb","shellcode","scdbg"] },
+      { id: "029", platform: "CyberDefenders", title: "Hunter", cat: "Windows DFIR", diff: "Medium", desc: "Examine a suspect Windows forensic image to confirm illegal port-scanning activity, identifying the scanner tool, timing, and open ports", tags: ["disk-forensic","registry","prefetch","ftk-imager","eztools"] },
+      { id: "030", platform: "CyberDefenders", title: "IMDSv1", cat: "Cloud Security", diff: "Hard", desc: "Investigate an AWS SSRF-to-IMDS attack via PCAP and CloudTrail logs to trace IAM credential theft, S3 exfiltration, and bucket deletion", tags: ["aws","ssrf","cloudtrail","imds","s3"] },
+
+      // LetsDefend (sample)
+      { id: "L01", platform: "LetsDefend", title: "Phishing Email Analysis", cat: "Email Security", diff: "Easy", desc: "Analyze a phishing email to extract indicators, identify the attacker infrastructure, and determine the payload delivery method", tags: ["email","phishing","headers","ioc"] },
+      { id: "L02", platform: "LetsDefend", title: "Malicious Document", cat: "Malware Analysis", diff: "Medium", desc: "Dissect a malicious Office document containing macros and recover the C2 communication details", tags: ["macro","olevba","powershell","c2"] },
+      { id: "L03", platform: "LetsDefend", title: "Ransomware Incident", cat: "Incident Response", diff: "Hard", desc: "Investigate a ransomware outbreak from initial access through encryption and identify the family and decryption possibilities", tags: ["ransomware","ir","timeline","ioc"] },
+      { id: "L04", platform: "LetsDefend", title: "Web Shell Detection", cat: "Web Forensics", diff: "Medium", desc: "Find and analyze a web shell planted on a compromised IIS server and reconstruct the attacker actions", tags: ["webshell","iis","logs","php"] },
+      { id: "L05", platform: "LetsDefend", title: "Memory Analysis Challenge", cat: "Memory Forensics", diff: "Hard", desc: "Use Volatility to extract process injection evidence, network connections, and malware artifacts from a memory dump", tags: ["volatility","malfind","netscan","injection"] },
+
+      // Centri / BTLO
+      { id: "C01", platform: "Centri", title: "BTLO Starter Investigation", cat: "SOC", diff: "Easy", desc: "Introductory blue team lab covering basic alert triage and log analysis techniques", tags: ["soc","logs","triage"] },
+      { id: "C02", platform: "Centri", title: "Network Intrusion", cat: "Network Forensics", diff: "Medium", desc: "Investigate suspicious network traffic to identify C2 beacons and lateral movement indicators", tags: ["pcap","c2","beacon","zeek"] },
+      { id: "C03", platform: "Centri", title: "Endpoint Compromise", cat: "Endpoint Forensics", diff: "Hard", desc: "Deep dive into endpoint artifacts after a successful phishing campaign leading to domain compromise", tags: ["endpoint","persistence","lateral"] },
+
+      // HTB Sherlocks
+      { id: "H01", platform: "HTB Sherlocks", title: "Liberty", cat: "DFIR", diff: "Medium", desc: "HTB Sherlock created by chicken0248 — investigate the forensic artifacts from a compromised environment", tags: ["htb","sherlock","dfir"] },
+      { id: "H02", platform: "HTB Sherlocks", title: "Sample Sherlock", cat: "Windows DFIR", diff: "Easy", desc: "Analyze Windows event logs and prefetch files to reconstruct the attack timeline", tags: ["evtx","prefetch","timeline"] },
+
+      // TryHackMe
+      { id: "T01", platform: "TryHackMe", title: "Snapped Phish-ing Line", cat: "Blue Team", diff: "Medium", desc: "Investigate phishing mails and dig into the phishing site to find the phishing kit and who fell for this attack", tags: ["phishing","thm","blue-team"] },
+      { id: "T02", platform: "TryHackMe", title: "Basic DFIR", cat: "Windows DFIR", diff: "Easy", desc: "Introductory digital forensics room covering common Windows artifacts", tags: ["dfir","registry","browser"] },
+
+      // Others
+      { id: "U01", platform: "Unlisted", title: "MemLabs Lab 3 - The Evil's Den", cat: "Memory Forensics", diff: "Hard", desc: "Memory forensics challenge involving advanced process hiding and injection techniques", tags: ["memlabs","volatility","memory"] },
+      { id: "U02", platform: "Unlisted", title: "MemLabs Lab 4 - Obsession", cat: "Memory Forensics", diff: "Hard", desc: "Continue the MemLabs series with more complex memory analysis scenarios", tags: ["memlabs","volatility"] },
+      { id: "M01", platform: "HTB Machines", title: "Sample Machine Write-up", cat: "Penetration Testing", diff: "Medium", desc: "Walkthrough of an HTB machine covering initial foothold, privilege escalation, and post-exploitation", tags: ["htb","pwn","privesc"] },
+      { id: "S01", platform: "HackSmarter", title: "HackSmarter Challenge", cat: "Blue Team", diff: "Medium", desc: "Practical blue team exercise from the HackSmarter platform", tags: ["hacksmarter","soc"] },
+    ];
+
+    // Group by platform
+    const platforms = [
+      { key: "CyberDefenders", title: "CyberDefenders", sub: "CyberDefenders → CyberDefenders - CyberRange", icon: "◈" },
+      { key: "LetsDefend", title: "LetsDefend", sub: "LetsDefend SOC Labs", icon: "◈" },
+      { key: "Centri", title: "Centri · Blue Team Labs Online", sub: "Centri / BTLO", icon: "◈" },
+      { key: "HTB Sherlocks", title: "HTB Sherlocks", sub: "Hack The Box Sherlocks", icon: "◈" },
+      { key: "TryHackMe", title: "TryHackMe", sub: "TryHackMe Blue Team rooms", icon: "◈" },
+      { key: "Unlisted", title: "Unlisted Labs", sub: "Various unlisted / personal labs", icon: "◈" },
+      { key: "HTB Machines", title: "HTB Machines", sub: "Hack The Box Machines", icon: "◈" },
+      { key: "HackSmarter", title: "HackSmarter.org", sub: "HackSmarter challenges", icon: "◈" },
+    ];
+
+    let currentPlat = "";
+    let currentDiff = "";
+    let searchQ = "";
+
+    function matches(w) {
+      if (currentPlat && w.platform !== currentPlat) return false;
+      if (currentDiff && w.diff !== currentDiff) return false;
+      if (searchQ) {
+        const hay = `${w.title} ${w.cat} ${w.desc} ${w.tags.join(" ")} ${w.platform}`.toLowerCase();
+        if (!hay.includes(searchQ)) return false;
+      }
+      return true;
+    }
+
+    function render() {
+      const list = document.getElementById("list");
+      const empty = document.getElementById("empty");
+      list.innerHTML = "";
+
+      let totalVisible = 0;
+
+      platforms.forEach(p => {
+        const items = writeups.filter(w => w.platform === p.key && matches(w));
+        if (items.length === 0) return;
+        totalVisible += items.length;
+
+        const sec = document.createElement("div");
+        sec.className = "platform open";
+        sec.innerHTML = `
+          <div class="platform-header">
+            <div class="platform-left">
+              <div class="platform-icon">${p.icon}</div>
+              <div>
+                <div class="platform-title">${p.title}</div>
+                <div class="platform-sub">${p.sub}</div>
+              </div>
+            </div>
+            <div class="platform-badge">● ${p.key.toUpperCase().slice(0,12)} · ${items.length}</div>
+          </div>
+          <div class="platform-body"></div>
+        `;
+
+        const body = sec.querySelector(".platform-body");
+        items.forEach(w => {
+          const diffClass = w.diff.toLowerCase().replace(/\s+/g, "");
+          const card = document.createElement("div");
+          card.className = "wu";
+          card.innerHTML = `
+            <div class="wu-top">
+              <span class="wu-id">#${w.id}</span>
+              <span class="wu-plat">● ${w.platform.toUpperCase()}</span>
+              <span class="wu-diff ${diffClass}">${w.diff}</span>
+            </div>
+            <h3>${w.title}</h3>
+            <div class="wu-cat">${w.cat}</div>
+            <div class="wu-desc">${w.desc}</div>
+            <div class="tags">${w.tags.map(t => `<span class="tag">${t}</span>`).join("")}</div>
+          `;
+          body.appendChild(card);
+        });
+
+        sec.querySelector(".platform-header").addEventListener("click", () => {
+          sec.classList.toggle("open");
+        });
+
+        list.appendChild(sec);
+      });
+
+      empty.classList.toggle("show", totalVisible === 0);
+    }
+
+    // Filters
+    document.querySelectorAll("#plat-filters .chip").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#plat-filters .chip").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentPlat = btn.dataset.plat || "";
+        render();
+      });
+    });
+
+    document.querySelectorAll("#diff-filters .chip").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#diff-filters .chip").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentDiff = btn.dataset.diff || "";
+        render();
+      });
+    });
+
+    document.getElementById("search").addEventListener("input", e => {
+      searchQ = e.target.value.trim().toLowerCase();
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>
